@@ -1,4 +1,4 @@
-# Ngrxtutorial
+# NgRxtutorial
 
 This project is used to connect with the state management redux using the ngrx/store plugin
 
