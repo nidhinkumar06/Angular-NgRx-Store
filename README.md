@@ -1,27 +1,154 @@
 # Ngrxtutorial
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.2.3.
+This project is used to connect with the state management redux using the ngrx/store plugin
 
-## Development server
+## What is Store
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Store is a controlled state container designed to help write performant, consistent application on top of Angular
 
-## Code scaffolding
+## Key concepts
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+* Actions - Describes unique events that are dispatched from components and services
+* Reducers - State changes are handled by a pure function called reducers that takes the current state and the latest action to compute a new state
+* Selectors - It is a pure function that is used to select derive and compose pieces of state
+* Store - State is accessed with store an observable of state and observer of actions
 
-## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+## Installation
 
-## Running unit tests
+* Install the plugin from the [Link](https://www.npmjs.com/package/@ngrx/store)
+* Website / Documentation [Link](https://ngrx.io/guide/store)
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## About the application
 
-## Running end-to-end tests
+The application created has two modules namely 
+  * Create a record
+  * List the record
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+What this appplication will do is it will store the created records in a store and read the records from the store and list it.  
 
-## Further help
+## Store Architecture 
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+The store has 2 components namely
+  * Actions
+  * Reducers
+
+### Actions
+  It will acts an intermediate between the reducer and the controller where the data which needs to be stored will be passed via the actions
+
+### Reducers
+  It will act an intermediate between the store and the action where what kind of operations are needs to be performed when an particular action is get called
+
+## Action syntax
+
+```
+export class AddTutorial implements Action {
+  readonly type = ADD_TUTORIAL;
+
+  constructor(public payload: Tutorial) {}
+}
+```
+
+## Reducer syntax
+
+```
+import { Tutorial } from '../models/tutorial.model';
+import * as TutorialActions from '../actions/tutorials.action';
+
+const initialState: Tutorial = {
+  name: 'Initial Tutorial',
+  url: 'https://google.com'
+};
+
+export function tutorialReducer(state: Tutorial[] = [initialState], action: TutorialActions.Actions) {
+  switch (action.type) {
+    case TutorialActions.ADD_TUTORIAL:
+      return [...state, action.payload];
+
+    case TutorialActions.REMOVE_TUTORIAL:
+       state.splice(action.payload, 1);
+       return state;
+    default:
+      return state;
+  }
+}
+```
+
+## Adding reducer to store in app.module.ts
+
+Import the store module and the reducer to app.module.ts like below
+
+```
+import { StoreModule } from '@ngrx/store';
+import { tutorialReducer } from './reducers/tutorials.reducer';
+```
+
+once the files are imported create the store with root in imports
+
+```
+imports: [
+  BrowserModule,
+  StoreModule.forRoot({
+    tutorial: tutorialReducer
+  })
+],
+```
+
+## Getting / Reading the reducer in a component
+
+To get the datas from the store to  a component do like below
+
+Open the component.ts file of the selected component and then import the files like below
+
+```
+import { AppState } from './../app.state';
+import { Tutorial } from './../models/tutorial.model';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import * as TutorialActions from '../actions/tutorials.action';
+```
+
+once the import statements are added create a observable and then pass the tutorial model in it like below and in the constructor inject the store with AppState
+Once the injection is done use the command `store.select('your reducer')`
+
+```
+  tutorials: Observable<Tutorial[]>;
+
+  constructor(private store: Store<AppState>) {
+    this.tutorials = store.select('tutorial');
+  }
+```
+
+## Writing to a reducer / store
+
+To write the datas to the store using actions do like below
+
+Open the components.ts file of the selected component and then import the files like below
+
+```
+import { AppState } from './../app.state';
+import { Store } from '@ngrx/store';
+import * as TutorialActions from '../actions/tutorials.action';
+```
+
+In the above import we have called the action file also. once it is done inject the store in constructor
+
+```
+constructor(private store: Store<AppState>) { }
+
+```
+Once the injection is done add the store.dispatch method to add data to the reducer like below
+
+```
+addTutorial(name, url) {
+  this.store.dispatch(new TutorialActions.AddTutorial({ name: name, url: url }));
+}
+```
+
+
+
+## To Be know
+
+ * Why the app.state.ts is used
+
+
